@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"strconv"
@@ -31,7 +33,12 @@ func (c TaskController) Create(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		c.log.Error(err)
-		ctx.JSON(500, gin.H{"data": err.Error()})
+		switch t := err.(type) {
+		case *json.UnmarshalTypeError:
+			ctx.JSON(400, gin.H{"data": fmt.Sprintf("field %s is of a wront type", t.Field)})
+		default:
+			ctx.JSON(500, gin.H{"data": err})
+		}
 		return
 	}
 
