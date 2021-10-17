@@ -4,6 +4,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"os"
 	"todoApp/internal/app"
 	"todoApp/internal/app/command"
 	"todoApp/internal/app/query"
@@ -15,17 +16,13 @@ import (
 func NewApplication() app.Application {
 	log := logrus.New()
 
-	db, err := gorm.Open(sqlite.Open("./db/test.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(os.Getenv("DB")), &gorm.Config{})
 
 	if err != nil {
 		log.Panic(err)
 	}
 
 	err = db.AutoMigrate(&models.Task{})
-
-	if err != nil {
-		log.Panic(err)
-	}
 
 	if err != nil {
 		log.Panic(err)
