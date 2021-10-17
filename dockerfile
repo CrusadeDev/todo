@@ -2,6 +2,8 @@ FROM golang:1.17 as base
 
 WORKDIR /build
 
+RUN go get github.com/go-delve/delve/cmd/dlv
+
 # Copy and download dependency using go mod
 COPY go.mod .
 COPY go.sum .

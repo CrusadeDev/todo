@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -14,34 +15,22 @@ import (
 )
 
 func NewApplication() app.Application {
-	log := logrus.New()
+	logger := logrus.New()
 
-	db, err := gorm.Open(sqlite.Open(os.Getenv("DB")), &gorm.Config{})
+	todoRepository := buildTodoRepository(logger)
+	application := buildApplication(todoRepository)
 
-	if err != nil {
-		log.Panic(err)
-	}
-
-	err = db.AutoMigrate(&models.Task{})
+	r := routes.BuildHttpRouter(application, logger)
+	err := r.Run()
 
 	if err != nil {
-		log.Panic(err)
-	}
-
-	application := buildApplication(db)
-
-	r := routes.BuildHttpRouter(application, log)
-	err = r.Run()
-
-	if err != nil {
-		log.Panic(err)
+		logger.Panic(err)
 	}
 
 	return application
 }
 
-func buildApplication(db *gorm.DB) app.Application {
-	todoRepository := repository.NewTodoRepositorySqlite(db)
+func buildApplication(todoRepository repository.TaskRepositoryInterface) app.Application {
 
 	return app.Application{
 		Queries: app.Queries{
@@ -53,4 +42,30 @@ func buildApplication(db *gorm.DB) app.Application {
 			Remove: *command.NewRemoveHandler(todoRepository),
 		},
 	}
+}
+
+func buildTodoRepository(log *logrus.Logger) repository.TaskRepositoryInterface {
+	var todoRepository repository.TaskRepositoryInterface
+	dbType := os.Getenv("DB_TYPE")
+	switch dbType {
+	case "sqlite":
+		db, err := gorm.Open(sqlite.Open(os.Getenv("DB")), &gorm.Config{})
+
+		if err != nil {
+			log.Panic(err)
+		}
+
+		err = db.AutoMigrate(&models.Task{})
+
+		if err != nil {
+			log.Panic(err)
+		}
+		todoRepository = repository.NewTodoRepositorySqlite(db)
+	case "in-memory":
+		todoRepository = repository.NewTaskInMemoryRepository()
+	default:
+		log.Panic(fmt.Sprintf("Invalid database type: %s", dbType))
+	}
+
+	return todoRepository
 }
