@@ -13,8 +13,8 @@ type TaskController struct {
 	log *logrus.Logger
 }
 
-func NewTaskController(app app.Application) *TaskController {
-	return &TaskController{app: app}
+func NewTaskController(app app.Application, log *logrus.Logger) *TaskController {
+	return &TaskController{app: app, log: log}
 }
 
 func (c TaskController) Index(ctx *gin.Context) {
@@ -25,14 +25,14 @@ func (c TaskController) Index(ctx *gin.Context) {
 
 func (c TaskController) Create(ctx *gin.Context) {
 	req := struct {
-		Id   int    `json:"id"`
-		Item string `json:"item"`
+		Id   int    `json:"id" binding:"required"`
+		Item string `json:"item" binding:"required"`
 	}{}
-	err := ctx.BindJSON(&req)
 
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		c.log.Error(err)
 		ctx.JSON(500, gin.H{"data": err.Error()})
+		return
 	}
 
 	c.app.Commands.Create.Handle(command.CreateCommand{Id: req.Id, Message: req.Item})
@@ -41,13 +41,13 @@ func (c TaskController) Create(ctx *gin.Context) {
 
 func (c TaskController) Remove(ctx *gin.Context) {
 	req := struct {
-		Id int `json:"id"`
+		Id int `json:"id" binding:"required"`
 	}{}
-	err := ctx.BindJSON(&req)
 
-	if err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		c.log.Error(err)
 		ctx.JSON(500, gin.H{"data": err.Error()})
+		return
 	}
 
 	c.app.Commands.Remove.Handle(command.RemoveCommand{Id: req.Id})
@@ -60,6 +60,7 @@ func (c TaskController) GetSingle(ctx *gin.Context) {
 	if err != nil {
 		c.log.Error(err)
 		ctx.JSON(400, gin.H{"data": "id param needs to be numeric"})
+		return
 	}
 
 	ctx.JSON(200, gin.H{"data": c.app.Queries.GetSingle.Handle(id)})

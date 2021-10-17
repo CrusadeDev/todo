@@ -30,7 +30,7 @@ func NewApplication() app.Application {
 
 	application := buildApplication(db)
 
-	r := routes.BuildHttpRouter(application)
+	r := routes.BuildHttpRouter(application, log)
 	err = r.Run()
 
 	if err != nil {
