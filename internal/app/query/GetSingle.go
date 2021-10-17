@@ -13,6 +13,6 @@ func NewGetSingle(taskRepository repository.TaskRepositoryInterface) *GetSingleH
 	return &GetSingleHandler{taskRepository: taskRepository}
 }
 
-func (h GetSingleHandler) Handle(id int) models.Task {
+func (h GetSingleHandler) Handle(id int) (models.Task, error) {
 	return h.taskRepository.ById(id)
 }

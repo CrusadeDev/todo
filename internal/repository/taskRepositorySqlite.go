@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"todoApp/internal/models"
 )
@@ -24,11 +25,15 @@ func (t TaskRepositorySqlite) Remove(id int) {
 	t.db.Delete(&models.Task{}, id)
 }
 
-func (t TaskRepositorySqlite) ById(id int) models.Task {
+func (t TaskRepositorySqlite) ById(id int) (models.Task, error) {
 	var item models.Task
-	t.db.First(&item, id)
+	result := t.db.First(&item, id)
 
-	return item
+	if result.Error != nil {
+		return models.Task{}, errors.New("task not found")
+	}
+
+	return item, nil
 }
 
 func NewTodoRepositorySqlite(db *gorm.DB) *TaskRepositorySqlite {

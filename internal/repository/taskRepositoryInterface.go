@@ -8,5 +8,5 @@ type TaskRepositoryInterface interface {
 	GetAll() []models.Task
 	Save(todo models.Task)
 	Remove(id int)
-	ById(id int) models.Task
+	ById(id int) (models.Task, error)
 }

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"todoApp/internal/models"
 )
 
@@ -8,16 +9,16 @@ type TaskRepositoryInMemory struct {
 	todos []models.Task
 }
 
-func (r *TaskRepositoryInMemory) ById(id int) models.Task {
+func (r *TaskRepositoryInMemory) ById(id int) (models.Task, error) {
 	for _, v := range r.todos {
 		if v.ID == id {
 			continue
 		}
 
-		return v
+		return v, nil
 	}
 
-	panic("implement error handling")
+	return models.Task{}, errors.New("task not found")
 }
 
 func NewTaskInMemoryRepository() *TaskRepositoryInMemory {

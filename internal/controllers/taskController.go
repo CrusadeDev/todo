@@ -63,5 +63,13 @@ func (c TaskController) GetSingle(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(200, gin.H{"data": c.app.Queries.GetSingle.Handle(id)})
+	result, err := c.app.Queries.GetSingle.Handle(id)
+
+	if err != nil {
+		c.log.Error(err)
+		ctx.JSON(404, gin.H{"data": "task not found"})
+		return
+	}
+
+	ctx.JSON(200, gin.H{"data": result})
 }
